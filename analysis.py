@@ -121,49 +121,89 @@ def data_subset_analysis():
     FROM cells
     WHERE condition = 'melanoma'
     AND treatment = 'miraclib'
+    AND sample_type = 'PBMC'
     AND time_from_treatment_start = 0
     """
 
-    cursor.execute(melanoma_baseline_miraclib_query)
-    melanoma_baseline_miraclib = cursor.fetchall()
-    print(len(melanoma_baseline_miraclib))
+    melanoma_baseline_miraclib_df = pd.read_sql_query(melanoma_baseline_miraclib_query, conn)
+
 
     grouped_by_project_query = """
-    SELECT project, COUNT(*)
+    SELECT project, COUNT(*) as count
     FROM cells
     WHERE condition = 'melanoma'
     AND treatment = 'miraclib'
+    AND sample_type = 'PBMC'
     AND time_from_treatment_start = 0
     GROUP BY project
     """
 
-    cursor.execute(grouped_by_project_query)
-    grouped_by_project = cursor.fetchall()
-    print(grouped_by_project)
+    grouped_by_project_df = pd.read_sql_query(grouped_by_project_query, conn)
+
 
     grouped_by_responder_query = """
-    SELECT response, COUNT(*)
+    SELECT response, COUNT(*) as count
     FROM cells
     WHERE condition = 'melanoma'
     AND treatment = 'miraclib'
+    AND sample_type = 'PBMC'
     AND time_from_treatment_start = 0
     GROUP BY response
     """
-    cursor.execute(grouped_by_responder_query)
-    grouped_by_responder = cursor.fetchall()
-    print(grouped_by_responder)
+    grouped_by_responder_df = pd.read_sql_query(grouped_by_responder_query, conn)
 
     grouped_by_sex_query = """
-    SELECT sex, COUNT(*)
+    SELECT sex, COUNT(*) as count
     FROM cells
     WHERE condition = 'melanoma'
     AND treatment = 'miraclib'
+    AND sample_type = 'PBMC'
     AND time_from_treatment_start = 0
     GROUP BY sex
     """
-    cursor.execute(grouped_by_sex_query)
-    grouped_by_sex = cursor.fetchall()
-    print(grouped_by_sex)
+    grouped_by_sex_df = pd.read_sql_query(grouped_by_sex_query, conn)
+
+    return [melanoma_baseline_miraclib_df, grouped_by_project_df, grouped_by_responder_df,
+            grouped_by_sex_df]
+
+def data_subset_analysis_visualization():
+    melanoma_df, project_df, responder_df, sex_df = data_subset_analysis()
+    st.title("Part 4: Melanoma Subset Analysis")
+    st.markdown("Table of PBMC melanoma samples at baseline treated with Miraclib")
+    st.dataframe(
+        melanoma_df,
+        height=500   # for scrolling
+    )
+
+    st.markdown("Breakdown by project")
+    fig = px.bar(
+        project_df,
+        x="project",
+        y="count",
+        height=300
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("Breakdown by response")
+    fig = px.bar(
+        responder_df,
+        x="response",
+        y="count",
+        height=300
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("Breakdown by sex")
+    fig = px.bar(
+        sex_df,
+        x="sex",
+        y="count",
+        height=300
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
 
 """
 Considering Melanoma males, what is the average number of 
@@ -185,8 +225,8 @@ def melanoma_males():
 
 initial_analysis_visualization()
 
-#data_subset_analysis()
 #print(melanoma_males())
 
 
 statistical_analysis_visualization()
+data_subset_analysis_visualization()
