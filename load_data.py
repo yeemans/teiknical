@@ -6,7 +6,7 @@ cursor = conn.cursor()
 
 # Create table
 cursor.execute("""
-CREATE TABLE IF NOT EXISTS cell(
+CREATE TABLE IF NOT EXISTS cells(
     sample TEXT PRIMARY KEY,
     project TEXT,
     subject TEXT,
@@ -33,7 +33,7 @@ df = pd.read_csv("cell-count.csv")
 # load cell-count.csv into the database
 for _, row in df.iterrows():
     cursor.execute("""
-    INSERT INTO cell (
+    INSERT INTO cells (
         sample,
         project,
         subject,
