@@ -50,7 +50,7 @@ def initial_analysis():
 def initial_analysis_visualization():
     initial_analysis_df = initial_analysis()
 
-    st.title("Cell Type Frequencies per Sample")
+    st.title("Part 2: Cell Type Frequencies per Sample")
     st.dataframe(
         initial_analysis_df.drop(columns=["condition", "treatment", "sample_type", "response"]),
         height=500   # for scrolling
@@ -83,6 +83,7 @@ def statistical_analysis():
     
 def statistical_analysis_visualization():
     respond_populations_df, not_respond_populations_df = statistical_analysis()
+    st.title("Part 3: Responder vs Nonresponder Population Breakdowns")
     col1, col2 = st.columns(2)
 
     with col1:
@@ -110,6 +111,9 @@ def statistical_analysis_visualization():
         fig2.update_xaxes(tickangle=45)
 
         st.plotly_chart(fig2)
+
+    st.markdown("Population breakdowns between responders and nonresponders are very similar." \
+    " The largest proportional difference is that nonresponders have 3.78% more B cells")
 
 def data_subset_analysis():
     melanoma_baseline_miraclib_query = """
