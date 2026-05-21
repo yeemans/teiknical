@@ -1,8 +1,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 import sqlite3  
 import streamlit as st
+import plotly.express as px
 
 CELL_TYPES = ["b_cell", "cd8_t_cell", "cd4_t_cell", "nk_cell", "monocyte"]
 conn = sqlite3.connect("cells.db")
@@ -47,6 +47,15 @@ def initial_analysis():
     print(output_df)
     return output_df
 
+def initial_analysis_visualization():
+    initial_analysis_df = initial_analysis()
+
+    st.title("Cell Type Frequencies per Sample")
+    st.dataframe(
+        initial_analysis_df.drop(columns=["condition", "treatment", "sample_type", "response"]),
+        height=500   # for scrolling
+    )
+
 def statistical_analysis():
     # only include pbmc samples
     df = initial_analysis()
@@ -70,25 +79,37 @@ def statistical_analysis():
 
     respond_populations_df = pd.DataFrame(respond_populations)
     not_respond_populations_df = pd.DataFrame(not_respond_populations)
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5), sharey=True)
+    return [respond_populations_df, not_respond_populations_df]
+    
+def statistical_analysis_visualization():
+    respond_populations_df, not_respond_populations_df = statistical_analysis()
+    col1, col2 = st.columns(2)
 
-    sns.boxplot(data=respond_populations_df, x="population", y="percentage", ax=axes[0])
-    axes[0].set_title("Responder Population Breakdown")
+    with col1:
+        fig1 = px.box(
+            respond_populations_df,
+            x="population",
+            y="percentage",
+            title="Responder Population Breakdown",
+            points="outliers"
+        )
 
-    sns.boxplot(data=not_respond_populations_df, x="population", y="percentage", ax=axes[1])
-    axes[1].set_title("Nonresponder Population Breakdown")
+        fig1.update_xaxes(tickangle=45)
 
-    for ax in axes:
-        ax.tick_params(axis='x', rotation=45)
+        st.plotly_chart(fig1)
 
-    plt.tight_layout()
-    plt.savefig("Responder vs Non Responder Population Breakdowns")
+    with col2:
+        fig2 = px.box(
+            not_respond_populations_df,
+            x="population",
+            y="percentage",
+            title="Nonresponder Population Breakdown",
+            points="outliers"
+        )
 
-    stats = respond_populations_df.groupby("population")["percentage"].describe()
-    print(stats)
+        fig2.update_xaxes(tickangle=45)
 
-    stats = not_respond_populations_df.groupby("population")["percentage"].describe()
-    print(stats)
+        st.plotly_chart(fig2)
 
 def data_subset_analysis():
     melanoma_baseline_miraclib_query = """
@@ -158,16 +179,10 @@ def melanoma_males():
     answer = cursor.fetchone()[0]
     return answer
 
-initial_analysis_df = initial_analysis()
-#statistical_analysis_df = statistical_analysis()
+initial_analysis_visualization()
+
 #data_subset_analysis()
 #print(melanoma_males())
 
-# dashboard
-st.title("Cell Type Frequencies per Sample")
 
-st.dataframe(
-    initial_analysis_df.drop(columns=["condition", "treatment", "sample_type", "response"]),
-    use_container_width=True,
-    height=500   # enables vertical scrolling
-)
+statistical_analysis_visualization()
