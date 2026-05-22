@@ -1,8 +1,8 @@
 ## Instructions to Run:
 Run the following commands in order:
-    make setup\
+    make setup
 
-    make pipeline\
+    make pipeline
 
     make dashboard
 
