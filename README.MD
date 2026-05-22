@@ -1,7 +1,9 @@
 ## Instructions to Run:
 Run the following commands in order:
-    make setup
-    make pipeline
+    make setup\
+
+    make pipeline\
+
     make dashboard
 
 If sqlite3 throws a UNIQUE constraint error, then the database is already initialized
