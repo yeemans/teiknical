@@ -18,3 +18,8 @@ Since the database captures all the information in the original dataset, it work
 
 ## Code Structure
 The code is separated into 3 Python files, load_data, pipeline, and dashboard. Because the makefile has 3 instructions, it made sense to separate code into 3 Python files. pipeline.py contains code to generate images, and dashboard.py both starts the dashboard and displays interactive graphs. pipeline.py has helper functions whose sole purpose is to process and return dataframes. Since these dataframes are both used to create images and appear on the dashboard, the helper functions save many lines of code.
+
+## Dashboard Link
+After running locally, the dashboard link is http://localhost:8501
+
+On Github codespaces, this may be different. The link to follow is that one that appears next to "Local URL:" in the terminal after running ```make dashboard```
