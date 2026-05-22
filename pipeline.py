@@ -1,9 +1,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import sqlite3  
-import streamlit as st
-import plotly.express as px
 import subprocess
+import seaborn as sns
 
 
 CELL_TYPES = ["b_cell", "cd8_t_cell", "cd4_t_cell", "nk_cell", "monocyte"]
@@ -51,18 +50,10 @@ def initial_analysis():
 
 def initial_analysis_visualization():
     initial_analysis_df = initial_analysis()
-
-    st.title("Part 2: Cell Type Frequencies per Sample")
-
     export_df = initial_analysis_df.head().drop(columns=["condition", "treatment", "sample_type", "response"])
     export_df.to_html("Cell_Type_Frequencies_per_Sample.html")
     subprocess.call(
-    'wkhtmltoimage -f png --width 0 Cell_Type_Frequencies_per_Sample.html Cell_Type_Frequencies_per_Sample.png', shell=True)
-
-    st.dataframe(
-        initial_analysis_df.drop(columns=["condition", "treatment", "sample_type", "response"]),
-        height=500   # for scrolling
-    )
+    'wkhtmltoimage -f png --width 0 Cell_Type_Frequencies_per_Sample.html Cell_Type_Frequencies_per_Sample_Part2.png', shell=True)
 
 def statistical_analysis():
     # only include pbmc samples
@@ -91,37 +82,18 @@ def statistical_analysis():
     
 def statistical_analysis_visualization():
     respond_populations_df, not_respond_populations_df = statistical_analysis()
-    st.title("Part 3: Responder vs Nonresponder Population Breakdowns")
-    col1, col2 = st.columns(2)
+    # save an image of the 2 boxplots
+    fig, axes = plt.subplots(1, 2, figsize=(10, 5))
 
-    with col1:
-        fig1 = px.box(
-            respond_populations_df,
-            x="population",
-            y="percentage",
-            title="Responder Population Breakdown",
-            points="outliers"
-        )
+    sns.boxplot(data=respond_populations_df, x='population', y='percentage', ax=axes[0])
+    axes[0].set_title('Responder Population Breakdowns')
 
-        fig1.update_xaxes(tickangle=45)
+    # Plot second dataframe on the second axis
+    sns.boxplot(data=not_respond_populations_df, x='population', y='percentage', ax=axes[1])
+    axes[1].set_title('Nonresponder Population Breakdowns')
 
-        st.plotly_chart(fig1)
-
-    with col2:
-        fig2 = px.box(
-            not_respond_populations_df,
-            x="population",
-            y="percentage",
-            title="Nonresponder Population Breakdown",
-            points="outliers"
-        )
-
-        fig2.update_xaxes(tickangle=45)
-
-        st.plotly_chart(fig2)
-
-    st.markdown("Population breakdowns between responders and nonresponders are very similar." \
-    " The largest proportional difference is that nonresponders have 3.78% more B cells")
+    plt.tight_layout()
+    plt.savefig("Responder_vs_Nonresponder_Population_Breakdowns_Part3")
 
 def data_subset_analysis():
     melanoma_baseline_miraclib_query = """
@@ -176,47 +148,31 @@ def data_subset_analysis():
 
 def data_subset_analysis_visualization():
     melanoma_df, project_df, responder_df, sex_df = data_subset_analysis()
-    st.title("Part 4: Melanoma Subset Analysis")
-    st.markdown("Table of PBMC melanoma samples at baseline treated with Miraclib")
-    st.dataframe(
-        melanoma_df,
-        height=500   # for scrolling
-    )
+    fig, axes = plt.subplots(1, 2, figsize=(10, 5))
 
-    st.markdown("Breakdown by project")
-    fig = px.bar(
-        project_df,
-        x="project",
-        y="count",
-        height=300
-    )
+    # save an image of the table for melanoma
+    melanoma_head_df = melanoma_df.head()
+    melanoma_head_df.to_html("Melanoma_Baseline_Table.html")
+    subprocess.call(
+    'wkhtmltoimage -f png --width 0 Melanoma_Baseline_Table.html Melanoma_Baseline_Table_Part4.1.png', shell=True)
 
-    st.plotly_chart(fig, use_container_width=True)
+    # save an image of the breakdown by project
+    plt.clf() # reset settings, so no subplots
+    sns.barplot(project_df, x="project", y="count")
+    plt.title("Breakdown By Project")
+    plt.savefig("Breakdown_By_Project_Part4.21.png")
 
-    st.markdown("Breakdown by response")
-    fig = px.bar(
-        responder_df,
-        x="response",
-        y="count",
-        height=300
-    )
+    plt.clf()
+    sns.barplot(responder_df, x="response", y="count")
+    plt.title("Breakdown By Response")
+    plt.savefig("Breakdown_By_Response_Part4.22.png")
 
-    st.plotly_chart(fig, use_container_width=True)
+    plt.clf()
+    sns.barplot(sex_df, x="sex", y="count")
+    plt.title("Breakdown By Sex")
+    plt.savefig("Breakdown_By_Sex_Part4.23.png")
 
-    st.markdown("Breakdown by sex")
-    fig = px.bar(
-        sex_df,
-        x="sex",
-        y="count",
-        height=300
-    )
 
-    st.plotly_chart(fig, use_container_width=True)
-
-"""
-Considering Melanoma males, what is the average number of 
-B cells for responders at time=0? Use two decimals (XXX.XX).
-"""
 def melanoma_males():
     query = """
     SELECT AVG(b_cell)
@@ -231,10 +187,7 @@ def melanoma_males():
     answer = cursor.fetchone()[0]
     return answer
 
+print(melanoma_males())
 initial_analysis_visualization()
-
-#print(melanoma_males())
-
-
 statistical_analysis_visualization()
 data_subset_analysis_visualization()
