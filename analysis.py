@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import sqlite3  
 import streamlit as st
 import plotly.express as px
+import subprocess
+
 
 CELL_TYPES = ["b_cell", "cd8_t_cell", "cd4_t_cell", "nk_cell", "monocyte"]
 conn = sqlite3.connect("cells.db")
@@ -51,6 +53,12 @@ def initial_analysis_visualization():
     initial_analysis_df = initial_analysis()
 
     st.title("Part 2: Cell Type Frequencies per Sample")
+
+    export_df = initial_analysis_df.head().drop(columns=["condition", "treatment", "sample_type", "response"])
+    export_df.to_html("Cell_Type_Frequencies_per_Sample.html")
+    subprocess.call(
+    'wkhtmltoimage -f png --width 0 Cell_Type_Frequencies_per_Sample.html Cell_Type_Frequencies_per_Sample.png', shell=True)
+
     st.dataframe(
         initial_analysis_df.drop(columns=["condition", "treatment", "sample_type", "response"]),
         height=500   # for scrolling
